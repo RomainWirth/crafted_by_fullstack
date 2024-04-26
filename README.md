@@ -5,8 +5,8 @@
 Serveur de connexion :
 ```sh
 romain@feitopor.net
-user: romain
-password: R0main89labs!
+user: <user>
+password: <ask_for_password>
 ```
 
 ### DEPLOIEMENT MANUEL DE L'APPLICATION
