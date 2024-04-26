@@ -1,0 +1,59 @@
+services:
+    traefik:
+        image: traefik:latest
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+            - "8080:8080"
+        command:
+            - --api.insecure=true
+            - --api.dashboard=true
+            - --api.debug=true
+            - --log.level=DEBUG
+
+            - --providers.docker
+            - --providers.docker.exposedbydefault=false
+            - --providers.docker.network=traefik-public
+
+            - --entrypoints.http.address=:80
+            - --entrypoints.https.address=:443
+
+            - --certificatesresolvers.tls.acme.tlschallenge=true
+            - --certificatesresolvers.tls.acme.email=romain.wirth@le-campus-numerique.fr
+            - --certificatesresolvers.tls.acme.storage=/letsencrypt/acme.json
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.docker.network=traefik-public"
+
+            - "traefik.http.middlewares.http_to_https.redirectscheme.scheme=https"
+
+            - "traefik.http.middlewares.auth.basicauth.users=user:$$2y$$05$$TglxTe1egPQ5cmPRTzbOtOUWyUHzmAoU9Pt4TeuNEC.68BZRjugHm"
+
+            - "traefik.http.routers.dashboard.rule=Host(`dashboard.feitopor.net`)"
+            - "traefik.http.routers.dashboard.entrypoints=http"
+            - "traefik.http.routers.dashboard.middlewares=http_to_https@docker"
+
+            - "traefik.http.routers.dashboard-secured.rule=Host(`dashboard.feitopor.net`)"
+            - "traefik.http.routers.dashboard-secured.service=api@internal"
+            - "traefik.http.routers.dashboard-secured.entrypoints=https"
+            - "traefik.http.routers.dashboard-secured.tls.certresolver=tls"
+            - "traefik.http.routers.dashboard-secured.middlewares=auth@docker"
+
+        volumes:
+            - ./letsencrypt:/letsencrypt
+            - /var/run/docker.sock:/var/run/docker.sock
+        networks:
+            - traefik-public
+        environment: 
+            - CLOUDFLARE_EMAIL=romain.wirth@le-campus-numerique.fr
+            - CLOUDFLARE_API_KEY=11e61f9ff478dc9d03f5394e1e16a87e971e7
+
+
+volumes:
+    traefik-public-certificates:
+
+networks:
+    traefik-public:
+        external: true

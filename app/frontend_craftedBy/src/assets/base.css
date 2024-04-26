@@ -1,0 +1,22 @@
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+  --primary: #f24141;
+  --primary-light: #fef2f2;
+  --primary-dark: #811b1b;
+  --secondary: #f2b1a2;
+  --tertiary: #8eb1cc;
+  --tertiary-light: #f4f8fa;
+  --dark: #12233f;
+  --grey-light: #f2f2f2;
+  --grey-medium-light: #bdbdbd;
+  --grey: #7c7c7c;
+  --grey-medium-dark: #525252;
+  --grey-dark: #3d3d3d;
+  --white: #fff;
+  --black: #000;
+}
+
+body {
+  min-height: 100dvh;
+  background-color: var(--grey-light);
+}

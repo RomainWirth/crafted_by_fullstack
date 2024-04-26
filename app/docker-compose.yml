@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+    # nom du service de la base de données
+    db:
+        container_name: db_crafted_by
+        # image docker de postgres
+        image: postgres:latest
+        restart: always
+        # set shared memory limit when using docker-compose
+        shm_size: 128mb
+        environment:
+            POSTGRES_DB: db_crafted_by
+            POSTGRES_USER: romainw
+            POSTGRES_PASSWORD: R0main89labs!
+        # volumes de persistance des données
+        volumes:
+            - pg-data:/var/lib/postgresql/data
+        networks:
+            - common_network
+
+    # nom du service backend
+    backend:
+        container_name: backend_crafted_by
+        image: romsteak74/crafted_by_api:latest
+        restart: always
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.http.routers.backend.rule=Host(`backend.feitopor.net`)"
+            - "traefik.http.routers.backend.entrypoints=https"
+            - "traefik.http.routers.backend.tls.certresolver=tls"
+
+            - "traefik.http.services.backend.loadbalancer.server.port=80"
+        depends_on:
+            - db
+        environment:
+            DB_HOST: db
+        networks:
+            - common_network
+            - traefik-public
+
+    # nom du service frontend
+    frontend:
+        container_name: frontend_crafted_by
+        image: romsteak74/crafted_by_frontend:latest
+        restart: always
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.http.routers.frontend.rule=Host(`feitopor.net`)"
+            - "traefik.http.routers.frontend.entrypoints=https"
+            - "traefik.http.routers.frontend.tls.certresolver=tls"
+
+            - "traefik.http.services.frontend.loadbalancer.server.port=80"
+        environment:
+            - VITE_BASE_API_URL=https://backend.feitopor.net/api
+        depends_on:
+            - backend
+        networks:
+            - common_network
+            - traefik-public
+
+networks:
+    common_network:
+    traefik-public:
+        external: true
+
+volumes:
+    pg-data: {}
