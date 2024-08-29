@@ -1,36 +1,36 @@
-# Utilisez une image de Node.js comme base
+# Use a Node.js image as a base
 FROM node:lts-alpine AS build-stage
 
-# Définir le répertoire de travail dans le conteneur
+# Set work directory into the container
 WORKDIR /app
 
-# Copiez les fichiers package.json et package-lock.json dans le conteneur
+# Copy the package.json and package-lock.json files into the container
 COPY package*.json ./
 
-# installe les dépendances du projet
+# Install project dependancies
 RUN npm install
 
-# Copiez le reste des fichiers de l'application dans le conteneur
+# Copy the rest of the app files into the container 
 COPY . .
 
-# Compilez l'application Vue.js
+# Compile Vue.js app
 RUN npm run build
 
-# Créez une nouvelle image légère pour servir l'application
+# Create a new lightweight image to serve the app
 FROM nginx:alpine
 
-# Copier le fichier de configuration NGINX
+# Copy NGINX configuration file
 COPY default.conf /etc/nginx/conf.d/default.conf
 
-# Copiez les fichiers de l'application compilée depuis le premier conteneur dans le répertoire approprié de l'image NGINX
+# Copy the compiled app files from the first container to the appropriate directory of the NGINX image
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-# Script pour remplacer les variables d'environnement
+# Script to replace environment variables
 COPY ./substitute_env_var.sh /docker-entrypoint.d/substitute_env_var.sh
 RUN chmod +x /docker-entrypoint.d/substitute_env_var.sh
 
-# Exposez le port 80 pour que l'application soit accessible depuis l'extérieur du conteneur
+# Expoose port 80 so the app can be access from outside the container
 EXPOSE 80
 
-# Commande pour démarrer NGINX et servir l'application
+# Command to start NGINX and serve the app
 CMD ["nginx", "-g", "daemon off;"]
