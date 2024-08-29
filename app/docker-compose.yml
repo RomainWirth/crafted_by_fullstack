@@ -1,10 +1,10 @@
 version: '3.9'
 
 services:
-    # nom du service de la base de données
+    # database service name
     db:
         container_name: db_crafted_by
-        # image docker de postgres
+        # postgres docker image
         image: postgres:latest
         restart: always
         # set shared memory limit when using docker-compose
@@ -13,13 +13,13 @@ services:
             POSTGRES_DB: db_crafted_by
             POSTGRES_USER: romainw
             POSTGRES_PASSWORD: R0main89labs!
-        # volumes de persistance des données
+        # data persistence volumes
         volumes:
             - pg-data:/var/lib/postgresql/data
         networks:
             - common_network
 
-    # nom du service backend
+    # backend service name
     backend:
         container_name: backend_crafted_by
         image: romsteak74/crafted_by_api:latest
@@ -40,7 +40,7 @@ services:
             - common_network
             - traefik-public
 
-    # nom du service frontend
+    # frontend service name
     frontend:
         container_name: frontend_crafted_by
         image: romsteak74/crafted_by_frontend:latest
