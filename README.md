@@ -1,26 +1,26 @@
-# MISE EN PRODUCTION
+# DEPLOYMENT
 
-## CONNEXION AU SERVEUR
+## CONNEXION TO SERVER
 
-Serveur de connexion :
+Connexion to server :
 ```sh
 romain@feitopor.net
 user: <user>
 password: <ask_for_password>
 ```
 
-### DEPLOIEMENT MANUEL DE L'APPLICATION
+### MANUAL APPLICATION DEPLOYMENT
 
-Pré-requis : 
-* Installer Docker
-* Paramétrer le VPS
-* Paramétrer les records DNS
-* Paramétrer le reverse proxy Traefik
-* Avoir une application fullstack qui tourne correctement en local
+Requirements : 
+* Install Docker
+* Configure VPS
+* Configure DNS records
+* Configure reverse proxy Traefik
+* Have a fullstack application that runs correctly locally
 
-#### Déploiement sur le serveur de production
+#### Deployment on production server
 
-Structure du serveur :
+Server structure :
 ```
 home
 | /traefik
@@ -31,42 +31,47 @@ home
 | | docker-compose.yml
 
 ```
-On va récupérer les images Docker depuis notre repository sur notre serveur :
+We will retrieve the Docker images from our repository on our server :
 ```sh
 docker image pull romsteak74/crafted_by_frontend:latest
 docker image pull romsteak74/crafted_by_api:latest
 docker pull postgres
 ```
 
-On va ensuite créer un fichier `docker-compose.yml` dans `/home :<br>
-N.B. : pour "db", bien mettre les même credentials qu'en local
+We will then create a `docker-compose.yml` file in /home :<br>
+NB: for 'db', put the same credentials as locally
 ```yml
 version: '3.9'
 
 services:
-    # nom du service de la base de données
+    # database service name
     db:
         container_name: db_crafted_by
-        # image docker de postgres
+        # postgres docker image 
         image: postgres:latest
+        # tells Docker to always restart this container in case of an unexpected shutdown
         restart: always
         # set shared memory limit when using docker-compose
         shm_size: 128mb
+        # set the necessary environment variables for the PostgreSQL container. including database name, username and password
         environment:
             POSTGRES_DB: db_crafted_by
             POSTGRES_USER: romainw
             POSTGRES_PASSWORD: R0main89labs!
-        # volumes de persistance des données
+        # data persistence volumes
         volumes:
             - pg-data:/var/lib/postgresql/data
         networks:
             - common_network
 
-    # nom du service backend
-    backend:
+    # backend service name
+    backend: 
         container_name: backend_crafted_by
+        # docker image to use. image on dockerhub
         image: <username>/crafted_by_api:latest
+        # tells Docker to always restart this container in case of an unexpected shutdown
         restart: always
+        # traefik reverse proxy
         labels:
             - "traefik.enable=true"
 
@@ -83,11 +88,14 @@ services:
             - common_network
             - traefik-public
 
-    # nom du service frontend
+    # frontend service name
     frontend:
         container_name: frontend_crafted_by
+        # docker image to use. image on dockerhub
         image: <username>/crafted_by_frontend:latest
+        # tells Docker to always restart this container in case of an unexpected shutdown
         restart: always
+        # traefik reverse proxy
         labels:
             - "traefik.enable=true"
 
@@ -97,6 +105,7 @@ services:
 
             - "traefik.http.services.frontend.loadbalancer.server.port=80"
         environment:
+            # environement variable to use for front-end
             - VITE_BASE_API_URL=https://backend.feitopor.net/api
         depends_on:
             - backend
@@ -114,23 +123,23 @@ volumes:
 
 ```
 
-Une fois cette étape réalisée : 
+Once this step done : 
 ```bash
 docker compose up -d
 ```
 
-Ensuite, se logger dans le conteneur du backend : 
+Then, login to backend container : 
 ```bash
 sudo docker exec -it <id_du_conteneur> sh
 ```
-et exécuter les commandes pour migrer et seeder la bdd :
+and execute following commands to migrate and seed database : 
 ```bash
 php artisan migrate
 
 php artisan db:seed
 ```
 
-On peut controller que tout fonctionne correctement en se rendant sur les url de l'app :
+You can check that everything is working correclty by going to the app urls : 
 - `https://dashboard.feitopor.net` 
 - `https://nginx.feitopor.net` 
 - `https://feitopor.net` 
